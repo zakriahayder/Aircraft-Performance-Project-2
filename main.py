@@ -21,12 +21,11 @@ density_table = {
 
 # Altitudes to evaluate (in feet)
 altitudes = [0, 5000, 10000, 15000]  # in ft
+all_altitudes = np.arange(0,17001,200) 
 
 # Standard Atmosphere Properties at altitudes
 rho_0 = 0.002377  # Sea level air density in slug/ft^3
 g = 32.174  # Gravitational acceleration ft/s^2
-
-
 
 
 
@@ -53,7 +52,8 @@ def get_drag(v, rho):
 
 def get_density_ratio(altitude):
     """Returns the density ratio at a given altitude based on the standard atmosphere."""
-    return density_table[altitude] / rho_0
+    rho = density_table.get(altitude, calculate_air_density(altitude))
+    return rho / rho_0
 
 def get_cl(v, rho):
     return 2*W / (rho * v**2 * S)
@@ -83,24 +83,65 @@ def calculate_air_density(altitude_ft):
     rho_imperial = rho_metric * 0.062428
     return rho_imperial
 
-def main():
-    # Calculate all data once
+def get_performance_data_part_a(alt):
     RC_data = {}
     Veq_data = {}
-    
-    for alt in altitudes:
-        rho = density_table[alt]
-        veq = convert_v_to_veq(velocities, alt)
+    for a in alt:
+        if a in density_table:
+            rho = density_table[a]
+        else:
+            rho = calculate_air_density(a)
         
         RC_values = []
-        for v in veq:
-            RC_fpm = calculate_rate_of_climb(v, alt, rho)
+        
+        for v_true in velocities:
+            RC_fpm = calculate_rate_of_climb(v_true, a, rho)
             RC_values.append(RC_fpm)
         
-        RC_data[alt] = RC_values
-        Veq_data[alt] = convert_ft_per_s_to_knots(veq)
-    
+        veq = convert_v_to_veq(velocities, a)
+        veq_knots = convert_ft_per_s_to_knots(veq)
+        
+        RC_data[a] = RC_values
+        Veq_data[a] = veq_knots
+    return RC_data, Veq_data
 
+def get_performance_data_part_c(alt):
+    RC_max_data = {}
+    for a in alt:
+        rho = calculate_air_density(a)
+        
+        RC_values = []
+        for v in velocities:
+            RC_fpm = calculate_rate_of_climb(v, a, rho)
+            RC_values.append(RC_fpm)
+        
+        RC_max_data[a] = max(RC_values)
+
+    return dict(sorted(RC_max_data.items()))
+
+def main():
+    # Calculate all data once
+
+    # for part a and b
+    RC_data, Veq_data = get_performance_data_part_a(altitudes)
+    RC_max_data = get_performance_data_part_c(all_altitudes)
+    print(RC_max_data)
+
+    plt.figure(figsize=(10,6))
+    altitudes_list = list(RC_max_data.keys())
+    RC_max_list = list(RC_max_data.values())
+    plt.plot(altitudes_list, RC_max_list, label='Rate of Climb')
+    plt.xlabel('Altitude (ft)')
+    plt.ylabel('Rate of Climb (ft/min)')
+    plt.title('Rate of Climb vs Altitude')
+    plt.ylim(top=1500, bottom=0)  
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+    # for part c
+
+    
     # Part a: RC vs Velocity
     plt.figure(figsize=(10, 6))
     for alt in altitudes:
@@ -109,6 +150,7 @@ def main():
     plt.xlabel('Horizontal Velocity (knots)')
     plt.ylabel('Rate of Climb (ft/min)')
     plt.title('Rate of Climb vs Velocity at Different Altitudes')
+    plt.ylim(bottom=-100)  
     plt.grid(True)
     plt.legend()
     plt.show()
@@ -121,6 +163,7 @@ def main():
     plt.xlabel('Rate of Climb (ft/min)')
     plt.ylabel('Horizontal Velocity (knots)')
     plt.title('Velocity vs Rate of Climb at Different Altitudes')
+    plt.xlim(left=-100)  
     plt.grid(True)
     plt.legend()
     plt.show()
