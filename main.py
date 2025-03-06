@@ -9,7 +9,7 @@ e0 = 0.6  # Oswald efficiency factor
 CL_max = 1.45  # Maximum lift coefficient without flaps
 BHP_SL = 180  # Brake Horsepower at sea level
 eta_p = 0.8  # Assumed propeller efficiency
-S = 160  # Estimated wing area in sq ft (adjust if needed)
+S = 160  # Estimated wing area in sq ft 
 k = 1 / (np.pi * e0 * AR)
 velocities = np.arange(70,271,1)
 density_table = {
@@ -38,7 +38,7 @@ def calculate_rate_of_climb(v, alt, rho):
     P_av = BHP_SL * get_density_ratio(alt) * eta_p * 550
     P_req = D * v
     RC = (P_av - P_req) / W
-    # Convert RC from ft/s to ft/min (multiply by 60)
+    # Convert RC from ft/s to ft/min 
     RC_fpm = RC * 60
     return RC_fpm
 
@@ -53,7 +53,6 @@ def get_drag(v, rho):
 
 def get_density_ratio(altitude):
     """Returns the density ratio at a given altitude based on the standard atmosphere."""
-    # Approximate density values in standard atm
     return density_table[altitude] / rho_0
 
 def get_cl(v, rho):
@@ -70,6 +69,19 @@ def get_cl_max_l_d():
 def convert_v_to_veq(velocities, alt):
     return [v * np.sqrt(get_density_ratio(alt)) for v in velocities]
 
+def calculate_air_density(altitude_ft):
+    altitude_m = altitude_ft * 0.3048
+    T0 = 288.15
+    P0 = 101325
+    g0 = 9.80665
+    R = 287.058
+    L = 0.0065
+    T = T0 - (L * altitude_m)
+    exponent = (g0 / (R * L))
+    P = P0 * (1 - (L * altitude_m) / T0) ** exponent
+    rho_metric = P / (R * T)
+    rho_imperial = rho_metric * 0.062428
+    return rho_imperial
 
 def main():
     # Calculate all data once
