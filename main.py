@@ -80,7 +80,7 @@ def calculate_air_density(altitude_ft):
     exponent = (g0 / (R * L))
     P = P0 * (1 - (L * altitude_m) / T0) ** exponent
     rho_metric = P / (R * T)
-    rho_imperial = rho_metric * 0.062428
+    rho_imperial = rho_metric * 0.00194032
     return rho_imperial
 
 def get_performance_data_part_a(alt):
@@ -125,8 +125,9 @@ def main():
     # for part a and b
     RC_data, Veq_data = get_performance_data_part_a(altitudes)
     RC_max_data = get_performance_data_part_c(all_altitudes)
-    print(RC_max_data)
+   
 
+   
     plt.figure(figsize=(10,6))
     altitudes_list = list(RC_max_data.keys())
     RC_max_list = list(RC_max_data.values())
